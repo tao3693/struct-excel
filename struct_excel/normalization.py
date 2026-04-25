@@ -23,15 +23,23 @@ def _get_row_data(ws: Worksheet, row: int) -> list:
 
 
 def _add_error_row(
-    ws: Worksheet, err_ws: Worksheet, row: int, rows_to_delete: list
+    ws: Worksheet,
+    err_ws: Worksheet,
+    row: int,
+    rows_to_delete: list,
+    reason: str,
 ) -> None:
-    err_ws.append(_get_row_data(ws, row))
+    row_data = _get_row_data(ws, row)
+    row_data.append(reason)
+    err_ws.append(row_data)
     rows_to_delete.append(row)
 
 
 def normalize_sheet(ws: Worksheet, err_ws: Worksheet) -> None:
+    headers = [cell.value for cell in ws[1]]
+    headers.append("Error Reason")
     ws = _trim_cells(ws)
-    err_ws.append([cell.value for cell in ws[1]])
+    err_ws.append(headers)
 
     try:
         _normalize_country_and_phone_col(ws, err_ws)
@@ -70,28 +78,37 @@ def _normalize_country_and_phone_col(ws: Worksheet, err_ws: Worksheet) -> None:
             continue
 
         if not isinstance(country_cell.value, str):
-            _add_error_row(ws, err_ws, row, rows_to_delete)
+            _add_error_row(ws, err_ws, row, rows_to_delete, "country is not a string")
             continue
         try:
             normalized_country = _normalize_country(country_cell.value)
             country_cell.value = normalized_country
         except ValueError as e:
-            _add_error_row(ws, err_ws, row, rows_to_delete)
+            _add_error_row(ws, err_ws, row, rows_to_delete, str(e))
             logger.error(f"row: {row} exception: {e}")
             continue
 
-        if not isinstance(phone_cell.value, str):
-            _add_error_row(ws, err_ws, row, rows_to_delete)
+        phone_str = _phone_to_str(phone_cell.value)
+        if not phone_str:
+            _add_error_row(ws, err_ws, row, rows_to_delete, "phone is empty")
             continue
 
         try:
-            phone_cell.value = _normalize_phone(phone_cell.value, normalized_country)
+            phone_cell.value = _normalize_phone(phone_str, normalized_country)
         except ValueError as e:
-            _add_error_row(ws, err_ws, row, rows_to_delete)
+            _add_error_row(ws, err_ws, row, rows_to_delete, str(e))
             logger.error(f"row: {row} exception: {e}")
 
     for row in reversed(rows_to_delete):
         ws.delete_rows(row)
+
+
+def _phone_to_str(value) -> str | None:
+    if value is None:
+        return None
+    if isinstance(value, float):
+        return str(int(value))
+    return str(value)
 
 
 def _normalize_country(country: str) -> str:
