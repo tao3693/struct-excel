@@ -1,7 +1,55 @@
 from datetime import datetime
 import calendar
 import re
-from struct_excel.models import CourseParseResult, PaymentStatus, SessionMode
+from struct_excel.models import (
+    CourseParseResult,
+    SessionMode,
+    Gender,
+    Sector,
+    PaymentStatus,
+)
+
+
+def parse_gender(value: str | Gender) -> Gender:
+    if isinstance(value, Gender):
+        return value
+    value = str(value).strip().lower() if value is not None else ""
+    if value == "male":
+        return Gender.MALE
+    if value == "female":
+        return Gender.FEMALE
+    return Gender.OTHER
+
+
+def parse_sector(value: str | Sector | None) -> Sector:
+    if isinstance(value, Sector):
+        return value
+
+    # TODO: Discuss the default value.
+    if value is None:
+        return Sector.STUDENT
+
+    normalized = str(value).strip().lower()
+    for sector in Sector:
+        if normalized in {sector.name.lower(), sector.value.lower()}:
+            return sector
+    return Sector.STUDENT
+
+
+def parse_experience(expr: str | None) -> tuple[int, int]:
+    if expr is None:
+        return 0, 0
+
+    numbers = [int(num) for num in re.findall(r"\d+", str(expr))]
+    if not numbers:
+        return 0, 0
+    if len(numbers) == 1:
+        if "<" in expr:
+            return 0, numbers[0]
+        if ">" in expr:
+            return numbers[0], 100
+        return numbers[0], numbers[0]
+    return min(numbers[0], numbers[1]), max(numbers[0], numbers[1])
 
 
 def parse_bool_schema(value: str | None) -> bool:

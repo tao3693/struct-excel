@@ -8,6 +8,10 @@ from struct_excel.parser import (
     parse_bool_schema,
     parse_course_session,
     parse_payment_status,
+    parse_course_session,
+    parse_gender,
+    parse_experience,
+    parse_sector,
 )
 
 logger = logging.getLogger(__name__)
@@ -39,7 +43,52 @@ def to_course(raw: list[RawRow]) -> list[Course]:
 
 
 def to_student(raw: list[RawRow], supervisors: list[Supervisor]) -> list[Student]:
-    return []
+    supervisor_lookup = {supervisor.email: supervisor for supervisor in supervisors}
+
+    students: list[Student] = []
+    seen = set()
+
+    for row in raw:
+        supervisor_id: int | None = None
+        if row.supervisor_email is not None and row.supervisor_name is not None:
+            sup = supervisor_lookup.get(row.supervisor_email)
+            if not sup:
+                logger.warning(
+                    f"lookup supervisor id failed: email={row.supervisor_email}"
+                )
+                supervisor_id = None
+            else:
+                supervisor_id = sup.supervisor_id
+
+        gender = parse_gender(row.gender)
+        experience_min_years, experience_max_years = parse_experience(row.experience)
+        it_background = parse_bool_schema(row.it_background)
+        sector = parse_sector(row.sector)
+
+        dedupe_key = row.student_email
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+
+        student = Student(
+            student_id=len(students) + 1,
+            full_name=row.student_full_name,
+            email=row.student_email,
+            gender=gender,
+            it_background=it_background,
+            experience_min_years=experience_min_years,
+            experience_max_years=experience_max_years,
+            sector=sector,
+            supervisor_id=supervisor_id,
+            company=row.student_company,
+            job_title=row.student_job_title,
+            country=row.country,
+            phone=row.phone,
+        )
+
+        students.append(student)
+
+    return students
 
 
 def to_session(raw: list[RawRow], courses: list[Course]) -> list[Session]:
