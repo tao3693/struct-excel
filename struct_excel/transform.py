@@ -14,7 +14,24 @@ def to_supervisor(raw: list[RawRow]) -> list[Supervisor]:
 
 
 def to_course(raw: list[RawRow]) -> list[Course]:
-    return []
+    courses: list[Course] = []
+    duplicate = set()
+
+    for row in raw:
+        parsed = parse_course_session(row.course)
+        course_name = parsed.course_name
+        if course_name in duplicate:
+            continue
+        duplicate.add(course_name)
+
+        courses.append(
+            Course(
+                course_id=len(courses) + 1,
+                course_name=course_name,
+            )
+        )
+
+    return courses
 
 
 def to_student(raw: list[RawRow], supervisors: list[Supervisor]) -> list[Student]:
@@ -39,6 +56,7 @@ def to_session(raw: list[RawRow], courses: list[Course]) -> list[Session]:
                 existed_course.course_id,
                 start,
                 end,
+                course_session.duration,
             )
             if dedup_key in seen:
                 continue
@@ -51,6 +69,7 @@ def to_session(raw: list[RawRow], courses: list[Course]) -> list[Session]:
                     start_datetime=start,
                     end_datetime=end,
                     mode=course_session.mode,
+                    duration=course_session.duration,
                 )
             )
             session_id += 1
