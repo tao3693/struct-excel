@@ -1,6 +1,6 @@
 from dataclasses import fields, is_dataclass
 from enum import Enum
-from normalization import normalize_sheet
+from struct_excel.normalization import normalize_sheet
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
 from struct_excel.reader import read_raw_row

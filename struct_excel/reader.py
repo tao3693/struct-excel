@@ -1,7 +1,7 @@
 from datetime import datetime
 from openpyxl.worksheet.worksheet import Worksheet
 
-from models import RawRow
+from struct_excel.models import RawRow
 
 
 def read_raw_row(ws: Worksheet) -> list[RawRow]:
