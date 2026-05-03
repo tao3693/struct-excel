@@ -8,7 +8,7 @@ This manual provides a step-by-step guide on how to perform cross-table data que
 
 To perform queries correctly, you must understand how the 5 tables connect to each other:
 
-1. **The Hub**: Everything starts from the **`enrollments`** table.
+1. **Enrollments**: Everything starts from the **`enrollments`** table.
 2. **Students**: `enrollments` links to **`students`** via the `student_id` field.
 3. **Supervisors**: `students` links to **`supervisors`** via the `supervisor_id` field.
 4. **Sessions**: `enrollments` links to **`sessions`** via the `session_id` field.
@@ -20,23 +20,13 @@ To perform queries correctly, you must understand how the 5 tables connect to ea
 
 ### Step 1: Import Data correctly
 
-1. Open a **new, blank** Excel workbook.
-2. Go to the **Data** tab ➡️ **Get Data** ➡️ **From File** ➡️ **From Text/CSV**.
-3. Select your first file (e.g., `enrollments.csv`) and click **Import**.
-4. **CRITICAL**: In the preview window, do **NOT** click "Load". Click the arrow next to "Load" and select **Load To...**.
-5. Select **Only Create Connection** AND check the box **Add this data to the Data Model**. Click **OK**.
-6. Repeat these steps for the remaining 4 files.
-
-### Step 2: Create Relationships (The "Red Strings")
-
-1. Go to the **Data** tab ➡️ click **Data Model** (Management) icon (usually an icon with a green checkmark).
-2. In the Power Pivot window that opens, click **Diagram View** (top right).
-3. You will see 5 boxes representing your tables. Use your mouse to **drag and drop** to create the following 4 connections:
-   * Drag `student_id` from `enrollments` to `student_id` in `students`.
-   * Drag `session_id` from `enrollments` to `session_id` in `sessions`.
-   * Drag `course_id` from `sessions` to `course_id` in `courses`.
-   * Drag `supervisor_id` from `students` to `supervisor_id` in `supervisors`.
-4. Once the 4 lines are visible, close the Power Pivot window.
+1. Open a **new, blank** Excel workbook (do not build the model directly inside your raw data file to keep it safe).
+2. Go to the **Data** tab ➡️ **Get Data** ➡️ **From File** ➡️ **From Excel Workbook**.
+3. Locate and select your **`2026_output.xlsx`** file, then click **Import**.
+4. In the Navigator window that appears, check the box for **Select multiple items** (usually at the top left).
+5. Check the boxes next to all 5 sheets: `enrollments`, `students`, `supervisors`, `sessions`, and `courses`.
+6. **CRITICAL**: Do **NOT** click "Load" directly. Click the arrow next to the "Load" button at the bottom and select **Load To...**.
+7. Select **Only Create Connection** AND check the box **Add this data to the Data Model**. Click **OK**.
 
 ---
 
